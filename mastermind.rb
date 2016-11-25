@@ -1,12 +1,13 @@
 require 'pry'
-require 'pry-byebug'  
+require 'pry-byebug' 
+
+COLORS = ["red","blue","green","yellow","black","white"]
 
 class SecretCode
   attr_reader :code
-  COLORS = ["red","blue","green","yellow","black","white"]
+
   def initialize
-    # @code = create_code
-    @code = ["green", "white", "black", "red"]
+    @code = create_code
   end
   def create_code
     secret = []
@@ -17,34 +18,52 @@ class SecretCode
   end
 end
 
-
 class Guess
   attr_reader :correct_in_position, :correct_outof_position, :guess_feedback
 
   def initialize(selection)
     @counter = 0
     @selection = selection
-    diff = $secret.code - @selection
-    @right = $secret.code - diff
+    @tally_colors_secret = $secret.code.each_with_object({}) do |e,h|
+          h[e] ? h[e] += 1 : h[e] = 1
+      end
+    @tally_colors_selection = @selection.each_with_object({}) do |e,h|
+          h[e] ? h[e] += 1 : h[e] = 1
+      end
     @guess_feedback = guess_results
   end
 
   def guess_results
     guess=[]
     inpos = correct_in_position
-    outpos = correct_outof_position
+    outpos = (inpos - correct_determination).abs
     guess.push(inpos, outpos)
+    # puts "guess is #{guess}"
     guess
   end
 
   private
-    def correct_outof_position
-      correct_not_in_place = 0
-      total_right = @right.each_with_object({}) do |e,h|
-        h[e] ? h[e] += 1 : h[e] = 1
+    def correct_determination
+      hsh_outcome = {}
+      hsh_temp = {}
+      @tally_colors_secret.each do |k,v|
+        if @tally_colors_selection.include? k
+          hsh_temp[k] = (v-@tally_colors_selection[k]).abs
+        end
       end
-      correct_not_in_place = (total_right.values.inject{|sum, n| sum + n}) - @counter
-      correct_not_in_place
+      # puts "tally_colors_secret is #{@tally_colors_secret}"
+      # puts "tally_colors_selection is #{@tally_colors_selection}"
+      # puts "hsh_temp is #{hsh_temp}"
+      hsh_temp.keys.each do |k|
+        if @tally_colors_secret[k] > hsh_temp[k]
+          hsh_outcome[k] = (@tally_colors_secret[k]-hsh_temp[k])
+        elsif @tally_colors_secret[k] <= hsh_temp[k]
+          hsh_outcome[k] = @tally_colors_secret[k]
+        end   
+      end
+      correct =hsh_outcome.values.inject { |sum, n| sum.to_i + n }
+      # puts "correct is #{correct}"
+      correct.to_i
     end
 
     def correct_in_position
@@ -54,8 +73,7 @@ class Guess
           @counter += 1
         end
       end
-      @counter
-   
+      @counter  
     end 
 end
 
@@ -64,12 +82,25 @@ class Display
     @positions = positions
     show_response
   end
+
   def show_response
+    puts
+    print "RESULT: "
     for i in 1..@positions[1]
       print "x"
     end
     for i in 1..@positions[0]
       print "X"
+    end
+    puts
+  end
+
+  def turn_number(turn)
+    print "Turn number #{turn} completed. #{12-turn} " 
+    if turn < 11
+      print "turns left."
+    else
+      print "turn left."
     end
     puts
   end
@@ -80,27 +111,34 @@ class Player
   def pick_colors
     selections=[]
     until selections.length == 4
-      puts "pick a color"
+      puts "pick a color (red,blue,green,yellow,black,white)"
       choice = gets.chomp
-      selections << choice
+      if COLORS.include?(choice)
+        selections << choice
+      else
+        puts "That is not one of the possible colors."
+      end
     end
     selections
   end
 end 
 
 $secret = SecretCode.new 
+# puts $secret.code
 guessing_player = Player.new
-$game_won = false 
-turn = 0
-while turn < 13 || $game_won != true
+turn = 1
+while turn < 13
   selections = guessing_player.pick_colors  
   guess = Guess.new(selections)
   if guess.guess_feedback[0] == 4
     puts "you win!"
     break
   else
-    Display.new(guess.guess_feedback)
+    display = Display.new(guess.guess_feedback)
+    display.turn_number(turn)
   end
   turn += 1
 end
-
+if turn == 12
+  puts "sorry. you failed to guess the code in 12 turns."
+end
