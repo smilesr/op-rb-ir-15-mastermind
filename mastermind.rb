@@ -139,6 +139,10 @@ while turn < 13
   end
   turn += 1
 end
-if turn == 12
-  puts "sorry. you failed to guess the code in 12 turns."
+if turn > 12
+  puts "Sorry. you failed to guess the code in 12 turns."
+  puts
+  puts "The secret code is #{$secret.code}"
+  puts
+
 end
