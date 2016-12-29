@@ -120,16 +120,6 @@ class Player
       else
          puts "You've entered an improper color. Please re-enter."
       end
-      #   selections = gets.gsub(/\s+/, "").split(",")
-     
-      # selections.each do |selection|
-      #   unless COLORS.include?(selection)
-         
-      #     puts
-      #     validaiton = 0
-      #   end
-      #   validation = 1
-      # end
     end
     selections
   end
