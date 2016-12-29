@@ -110,14 +110,26 @@ class Player
   attr_reader :pick_colors
   def pick_colors
     selections=[]
-    until selections.length == 4
-      puts "Pick a color (red,blue,green,yellow,black,white)"
+    validation = 0
+    puts "Pick 4 colors from the following list: red,blue,green,yellow,black,white."
+    until selections.size == 4
+      print "pick:"
       choice = gets.chomp
       if COLORS.include?(choice)
         selections << choice
       else
-        puts "That is not one of the possible colors."
+         puts "You've entered an improper color. Please re-enter."
       end
+      #   selections = gets.gsub(/\s+/, "").split(",")
+     
+      # selections.each do |selection|
+      #   unless COLORS.include?(selection)
+         
+      #     puts
+      #     validaiton = 0
+      #   end
+      #   validation = 1
+      # end
     end
     selections
   end
