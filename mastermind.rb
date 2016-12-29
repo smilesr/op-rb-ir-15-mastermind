@@ -24,7 +24,8 @@ class Guess
   def initialize(selection)
     @counter = 0
     @selection = selection
-    @tally_colors_secret = $secret.code.each_with_object({}) do |e,h|
+
+    @tally_colors_secret = $secret.each_with_object({}) do |e,h|
           h[e] ? h[e] += 1 : h[e] = 1
       end
     @tally_colors_selection = @selection.each_with_object({}) do |e,h|
@@ -69,7 +70,7 @@ class Guess
     def correct_in_position
       @counter = 0
       for i in 0..3 do
-        if $secret.code[i] == @selection[i]
+        if $secret[i] == @selection[i]
           @counter += 1
         end
       end
@@ -102,7 +103,6 @@ class Display
     else
       print "turn left."
     end
-    puts
   end
 end
 
@@ -111,7 +111,7 @@ class Player
   def pick_colors
     selections=[]
     until selections.length == 4
-      puts "pick a color (red,blue,green,yellow,black,white)"
+      puts "Pick a color (red,blue,green,yellow,black,white)"
       choice = gets.chomp
       if COLORS.include?(choice)
         selections << choice
@@ -123,12 +123,36 @@ class Player
   end
 end 
 
-$secret = SecretCode.new 
-# puts $secret.code
-guessing_player = Player.new
+puts "Do you want to"
+puts "(1) guess the code, or"
+puts "(2) create the code and let the computer guess?"
+puts "Choose 1 or 2"
+$answer = gets.chomp.to_i
+if $answer == 1
+  secret = SecretCode.new 
+  $secret = secret.code
+  guessing_player = Player.new
+end
+if $answer == 2
+
+  puts "Pick 4 colors from the following list (you can repeat color): red,blue,green,yellow,black,white.  Type them in a comma-separated list."
+  
+  $secret = gets.gsub(/\s+/, "").split(",")
+end
+
 turn = 1
 while turn < 13
-  selections = guessing_player.pick_colors  
+  if $answer == 1
+    selections = guessing_player.pick_colors  
+  end
+  if $answer == 2
+    selections = []
+    for i in 0..3
+      selections << COLORS.sample
+    end
+    puts ""
+    selections.each{|selection| print "#{selection}, "}
+  end
   guess = Guess.new(selections)
   if guess.guess_feedback[0] == 4
     puts "you win!"
@@ -140,9 +164,10 @@ while turn < 13
   turn += 1
 end
 if turn > 12
+  puts
   puts "Sorry. you failed to guess the code in 12 turns."
   puts
-  puts "The secret code is #{$secret.code}"
+  puts "The secret code is #{$secret}"
   puts
 
 end
